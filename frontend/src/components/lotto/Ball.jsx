@@ -18,10 +18,15 @@ export const BallRow = ({ numbers, size = "sm", tone }) => (
   </div>
 );
 
-export const BallGrid = ({ selected }) => (
+const gridTone = (n, selected, drawn) => {
+  if (!selected.includes(n)) return "muted";
+  return drawn && drawn.includes(n) ? "gold" : "brand";
+};
+
+export const BallGrid = ({ selected, drawn }) => (
   <div className="grid grid-cols-5 gap-1.5 w-fit">
     {Array.from({ length: 25 }, (_, i) => i + 1).map((n) => (
-      <Ball key={n} n={n} size="sm" tone={selected.includes(n) ? "brand" : "muted"} />
+      <Ball key={n} n={n} size="sm" tone={gridTone(n, selected, drawn)} />
     ))}
   </div>
 );

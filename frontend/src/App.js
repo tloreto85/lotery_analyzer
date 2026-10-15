@@ -9,7 +9,8 @@ import { StatCards } from "./components/lotto/StatCards";
 import { AnalysisTabs } from "./components/lotto/AnalysisTabs";
 import { GeneratorDialog } from "./components/lotto/GeneratorDialog";
 import { GeneratedGames } from "./components/lotto/GeneratedGames";
-import { uploadContests, fetchStats, clearContests, generateGames, errMsg } from "./lib/api";
+import { GameHistory } from "./components/lotto/GameHistory";
+import { uploadContests, fetchStats, clearContests, generateGames, fetchBatches, errMsg } from "./lib/api";
 import { exportStatsTxt, exportStatsXls } from "./lib/exporters";
 
 const WINDOWS = [[0, "Todos"], [10, "10"], [20, "20"], [30, "30"], [50, "50"]];
@@ -22,14 +23,18 @@ export default function App() {
   const [genLoading, setGenLoading] = useState(false);
   const [games, setGames] = useState(null);
   const [totalAll, setTotalAll] = useState(0);
+  const [batches, setBatches] = useState([]);
+
+  const loadBatches = useCallback(() => fetchBatches().then(setBatches).catch((e) => toast.error(errMsg(e))), []);
 
   const load = useCallback(async (w) => {
+    loadBatches();
     try {
       const [s, all] = await Promise.all([fetchStats(w), w ? fetchStats(0) : null]);
       setStats(s);
       setTotalAll((all || s).total);
     } catch (e) { toast.error(errMsg(e)); }
-  }, []);
+  }, [loadBatches]);
 
   useEffect(() => { load(win); }, [win, load]);
 
@@ -50,6 +55,7 @@ export default function App() {
       const r = await generateGames(w, q);
       setGames(r);
       setDialog({ open: false, ask: false });
+      loadBatches();
       toast.success(`${r.games.length} jogos gerados.`);
       setTimeout(() => document.getElementById("games")?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) { toast.error(errMsg(e)); }
@@ -116,7 +122,7 @@ export default function App() {
                 </div>
               </div>
               <Button data-testid="button-clear-history" variant="ghost" size="sm" className="text-slate-500 hover:text-red-400 hover:bg-transparent" onClick={onClear}>
-                <Trash2 className="w-4 h-4 mr-1" />Limpar histórico ({totalAll})
+                <Trash2 className="w-4 h-4 mr-1" />Limpar concursos ({totalAll})
               </Button>
             </div>
             <StatCards s={stats} />
@@ -125,6 +131,8 @@ export default function App() {
         )}
 
         {games && <div id="games"><GeneratedGames result={games} /></div>}
+
+        <GameHistory batches={batches} onChange={loadBatches} />
       </div>
 
       <GeneratorDialog open={dialog.open} askFirst={dialog.ask} total={totalAll} loading={genLoading}

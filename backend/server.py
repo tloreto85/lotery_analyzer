@@ -13,6 +13,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, BeforeValidator, ConfigDict
 from typing import List, Optional, Annotated
 from datetime import datetime, timezone
+from bson import ObjectId
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -45,6 +46,25 @@ class Contest(BaseDocument):
     concurso: int
     numbers: List[int]
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class GameBatch(BaseDocument):
+    window: int
+    based_on: int
+    last_concurso: int
+    games: List[dict]
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+def check_batch(batch: GameBatch, contest: Optional[Contest]):
+    out = batch.model_dump()
+    out["check"] = None
+    if contest:
+        drawn = set(contest.numbers)
+        hits = [len(drawn & set(g["numbers"])) for g in batch.games]
+        out["check"] = {"concurso": contest.concurso, "numbers": contest.numbers, "hits": hits,
+                        "best": max(hits), "summary": {str(k): hits.count(k) for k in range(11, 16)}}
+    return out
 
 
 class UploadIn(BaseModel):
@@ -250,7 +270,48 @@ async def generate(payload: GenerateIn):
     st = compute_stats(await load_contests(payload.window))
     if st["total"] == 0:
         raise HTTPException(400, "Nenhum concurso salvo. Faça upload de um arquivo primeiro.")
-    return {"window": payload.window, "based_on": st["total"], "games": generate_games(st, payload.quantity)}
+    batch = GameBatch(window=payload.window, based_on=st["total"], last_concurso=st["last_concurso"],
+                      games=generate_games(st, payload.quantity))
+    r = await db.game_batches.insert_one(batch.to_mongo())
+    batch.id = str(r.inserted_id)
+    return check_batch(batch, None)
+
+
+async def find_contest(concurso: int):
+    doc = await db.contests.find_one({"concurso": concurso})
+    return Contest.from_mongo(doc) if doc else None
+
+
+@api_router.get("/batches")
+async def list_batches():
+    docs = await db.game_batches.find({}).sort("created_at", -1).to_list(200)
+    out = []
+    for d in docs:
+        b = GameBatch.from_mongo(d)
+        out.append(check_batch(b, await find_contest(b.last_concurso + 1)))
+    return out
+
+
+@api_router.get("/batches/{batch_id}")
+async def get_batch(batch_id: str, concurso: Optional[int] = None):
+    doc = await db.game_batches.find_one({"_id": ObjectId(batch_id)}) if ObjectId.is_valid(batch_id) else None
+    if not doc:
+        raise HTTPException(404, "Lote de jogos não encontrado.")
+    b = GameBatch.from_mongo(doc)
+    contest = await find_contest(concurso if concurso else b.last_concurso + 1)
+    if concurso and not contest:
+        raise HTTPException(404, f"Concurso {concurso} não está salvo.")
+    return check_batch(b, contest)
+
+
+@api_router.delete("/batches/{batch_id}")
+async def delete_batch(batch_id: str):
+    if not ObjectId.is_valid(batch_id):
+        raise HTTPException(404, "Lote de jogos não encontrado.")
+    r = await db.game_batches.delete_one({"_id": ObjectId(batch_id)})
+    if not r.deleted_count:
+        raise HTTPException(404, "Lote de jogos não encontrado.")
+    return {"deleted": 1}
 
 
 app.include_router(api_router)
