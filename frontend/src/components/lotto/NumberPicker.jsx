@@ -27,7 +27,10 @@ export const NumberPicker = ({ value, onChange }) => {
       </div>
       <p className="text-[11px] text-slate-500">Clique: 1x fixa · 2x exclui · 3x limpa</p>
       <p data-testid="picker-summary" className="text-xs text-slate-400">
-        <span className="text-emerald-400">{value.fixed.length} fixas</span> · <span className="text-red-300">{value.excluded.length} excluídas</span>
+        <span className="text-emerald-400">{value.fixed.length} {value.fixed.length === 1 ? "fixa" : "fixas"}</span> · <span className="text-red-300">{value.excluded.length} {value.excluded.length === 1 ? "excluída" : "excluídas"}</span>
+        {(value.fixed.length > 0 || value.excluded.length > 0) && (
+          <button type="button" data-testid="picker-clear" onClick={() => onChange({ fixed: [], excluded: [] })} className="ml-3 underline text-slate-500 hover:text-white">Limpar seleção</button>
+        )}
       </p>
     </div>
   );

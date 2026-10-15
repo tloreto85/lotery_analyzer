@@ -1,0 +1,34 @@
+{
+  "summary": "Tested 'Gerar com Atrasadas' + 'Fixar Dezenas' (backend + UI) plus regression incl. Atraso tab. Backend 52/52 pytest pass (20 new in test_generate_options.py + 32 regression). Verified: every game has all fixed, none excluded, 15 unique sorted numbers, unique games; delayed=1/2 -> exactly k numbers from options.late (top 5 current>0 delays excluding fixed/excluded) and game.late == those present; options.late recomputed when top late numbers are fixed/excluded; 15 fixed -> 1 game (qty 100 in <1s); 10 excluded -> 1 game; 422 for fixed∩excluded, 0/26/-1, 14 fixed+2 delayed, 11 excluded, delayed 3/-1, qty 0/101; boundary 13 fixed+2 delayed OK; GET /batches and /batches/{id} return options, 4 old batches without options still listed (options={}). /api/stats delays: 25 entries, sorted by current desc then max, drawn-last numbers current=0/last_seen=300, window=10 ok. UI (1920): picker cycles none->fixed->excluded->none via data-state, picker-summary counts correct, delayed-option-0/1/2 toggle, delayed-candidates shows top late and refetches /api/stats?window=N on window change (values identical across windows because max current delay is 3 in sample data), 16 fixed / 15 fixed+1 delayed / 11 excluded / qty 101 show games-count-error and disable button; generating 8 games (fixed 1,2; excl 24; 2 late) -> generated-options-summary 'Fixas: 01, 02 Excluídas: 24 Atrasadas: 2 por jogo', each card game-late-i with 2 numbers; 15 fixed qty 5 -> toast '1 de 5 jogos gerados (as restrições não permitem mais jogos diferentes).'; history batch-options-i shown when expanded, batch-i-game-late-j present; Atraso tab delay-top (05,11,16,17,22) + table-delays 25 rows; history TXT/XLS export ok; mobile 390 generator modal no horizontal overflow. No console errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/generate", "issue": "When pool is forced (e.g. excluded 16-25 with delayed=2) games contain more than k late numbers (all 4 late in 1..15). Expected given 'when possible', but UI says 'N por jogo' - could note it."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Generator delayed-candidates preview", "issue": "UI takes top 5 late from /api/stats THEN filters out fixed/excluded (shows e.g. 3 numbers: 16 17 22 when 1-15 fixed), while backend filters fixed/excluded FIRST then takes top 5 (uses 16,17,22,23,21). Preview does not match numbers actually used. Fix: in GeneratorDialog filter by fixed/excluded before slice(0,5).", "affected_selectors": ["[data-testid='delayed-candidates']"]}
+    ],
+    "design_issues": [
+      {"screen": "Generator modal", "issues": ["picker-summary grammar: '1 excluídas'/'1 fixas' should be singular", "Picker state (fixed/excluded/delayed) persists between modal openings - fine but there's no 'Limpar' button to reset all 25 picks quickly"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_generate_options.py", "/app/backend/tests/test_batches_api.py", "/app/backend/tests/test_lotofacil_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "(Minor) GeneratorDialog: compute delayed candidates as delays.filter(current>0 && not fixed && not excluded).slice(0,5) to match backend options.late",
+    "(Minor) Singular/plural in picker-summary ('1 fixa', '1 excluída')",
+    "(Optional) Add a 'Limpar seleção' button in NumberPicker"
+  ],
+  "critical_code_review_comments": [
+    "generate_games: 'blocked' set prevents extra late numbers so exactly k late appear - correct; falls back to no block when pool too small",
+    "test_lotofacil_api.py regression generate tests do not clean up their batches (3 batches per run) - consider teardown"
+  ],
+  "updated_files": ["/app/backend/tests/test_generate_options.py"],
+  "success_rate": {"backend": "100%", "frontend": "100% (1 minor preview mismatch)"},
+  "seed_data_creation": "None. DB left with 300 contests #1-#300; all batches created by this run deleted (8 batches remain, main agent's).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: REACT_APP_BACKEND_URL=... pytest /app/backend/tests -n 0. test_generate_options.py cleans up its batches; test_lotofacil_api.py leaves 3 batches. Sample data current delays max 3 so delayed-candidates look identical across windows."
+}

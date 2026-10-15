@@ -35,11 +35,11 @@ export const GeneratorDialog = ({ open, onOpenChange, askFirst, total, loading, 
 
   useEffect(() => {
     if (!open || step !== "config") return;
-    fetchStats(win).then((s) => setLate((s.delays || []).filter((d) => d.current > 0).slice(0, 5))).catch(() => setLate([]));
+    fetchStats(win).then((s) => setLate((s.delays || []).filter((d) => d.current > 0))).catch(() => setLate([]));
   }, [open, step, win]);
 
   const error = validate(qty, picks, delayed);
-  const lateFree = late.filter((d) => !picks.fixed.includes(d.number) && !picks.excluded.includes(d.number));
+  const lateFree = late.filter((d) => !picks.fixed.includes(d.number) && !picks.excluded.includes(d.number)).slice(0, 5);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
