@@ -7,6 +7,7 @@ import re
 import random
 import logging
 import statistics
+import numpy as np
 from collections import Counter
 from itertools import combinations
 from pathlib import Path
@@ -91,6 +92,23 @@ class GenerateIn(BaseModel):
         if 25 - len(e) < 15:
             raise ValueError("Exclua no máximo 10 dezenas.")
         self.fixed, self.excluded = sorted(f), sorted(e)
+        return self
+
+
+class ClosureIn(BaseModel):
+    numbers: List[int]
+    guarantee: int = Field(ge=13, le=15)
+
+    @model_validator(mode="after")
+    def check_numbers(self):
+        nums = set(self.numbers)
+        if len(nums) != len(self.numbers) or any(n < 1 or n > 25 for n in nums):
+            raise ValueError("Dezenas devem ser únicas e entre 1 e 25.")
+        if not 16 <= len(nums) <= 20:
+            raise ValueError("Escolha de 16 a 20 dezenas.")
+        if self.guarantee == 15 and len(nums) > 18:
+            raise ValueError("Fechamento completo disponível até 18 dezenas (816 jogos).")
+        self.numbers = sorted(nums)
         return self
 
 
@@ -210,6 +228,38 @@ def top_values(items, key, cover=0.7):
     return chosen
 
 
+POPCOUNT = np.array([bin(i).count("1") for i in range(1 << 20)], dtype=np.int8)
+
+
+def closure_games(numbers: List[int], guarantee: int):
+    """guarantee=15 -> all combinations; 14/13 -> greedy covering assuming all 15 drawn are in numbers."""
+    n = len(numbers)
+    k = n - 15
+    omits = list(combinations(range(n), k))
+    if guarantee == 15:
+        chosen = range(len(omits))
+    else:
+        m = guarantee - 15 + k
+        masks = np.array([sum(1 << i for i in o) for o in omits], dtype=np.int64)
+        covered = np.zeros(len(masks), dtype=bool)
+        neigh = lambda u: np.nonzero(POPCOUNT[masks & masks[u]] >= m)[0]
+        gain = np.array([len(neigh(u)) for u in range(len(masks))]) if m > 0 else np.full(len(masks), len(masks))
+        chosen = []
+        while not covered.all():
+            c = int(np.argmax(gain))
+            chosen.append(c)
+            for u in neigh(c) if m > 0 else range(len(masks)):
+                if not covered[u]:
+                    covered[u] = True
+                    gain[neigh(u) if m > 0 else slice(None)] -= 1
+    return [sorted(numbers[i] for i in range(n) if i not in set(omits[c])) for c in chosen]
+
+
+def game_info(g, last, late=()):
+    return {"numbers": g, "sum": sum(g), "even": sum(1 for n in g if n % 2 == 0),
+            "repeated": len(last & set(g)), "late": [n for n in g if n in late]}
+
+
 def generate_games(stats, quantity, fixed=(), excluded=(), delayed=0):
     weights = {f["number"]: f["count"] + 1 for f in stats["number_freq"]}
     s = stats["sum"]
@@ -246,8 +296,7 @@ def generate_games(stats, quantity, fixed=(), excluded=(), delayed=0):
             continue
         seen.add(g)
         games.append(g)
-    return [{"numbers": list(g), "sum": sum(g), "even": sum(1 for n in g if n % 2 == 0),
-             "repeated": len(last & set(g)), "late": [n for n in g if n in late]} for g in games], late
+    return [game_info(list(g), last, late) for g in games], late
 
 
 @api_router.get("/")
@@ -309,6 +358,21 @@ async def generate(payload: GenerateIn):
     options = {"fixed": sorted(payload.fixed), "excluded": sorted(payload.excluded), "delayed": payload.delayed, "late": late}
     batch = GameBatch(window=payload.window, based_on=st["total"], last_concurso=st["last_concurso"],
                       games=games, options=options)
+    r = await db.game_batches.insert_one(batch.to_mongo())
+    batch.id = str(r.inserted_id)
+    return check_batch(batch, None)
+
+
+@api_router.post("/closure")
+async def closure(payload: ClosureIn):
+    latest = await db.contests.find_one({}, sort=[("concurso", -1)])
+    if not latest:
+        raise HTTPException(400, "Nenhum concurso salvo. Faça upload de um arquivo primeiro.")
+    last = Contest.from_mongo(latest)
+    total = await db.contests.count_documents({})
+    games = [game_info(g, set(last.numbers)) for g in closure_games(payload.numbers, payload.guarantee)]
+    options = {"closure": {"numbers": payload.numbers, "guarantee": payload.guarantee}}
+    batch = GameBatch(window=0, based_on=total, last_concurso=last.concurso, games=games, options=options)
     r = await db.game_batches.insert_one(batch.to_mongo())
     batch.id = str(r.inserted_id)
     return check_batch(batch, None)

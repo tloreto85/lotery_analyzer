@@ -8,6 +8,8 @@ export const fetchContests = (limit = 10) => axios.get(`${API}/contests`, { para
 export const clearContests = () => axios.delete(`${API}/contests`).then((r) => r.data);
 export const generateGames = (window, quantity, opts = {}) =>
   axios.post(`${API}/generate`, { window, quantity, ...opts }).then((r) => r.data);
+export const generateClosure = (numbers, guarantee) =>
+  axios.post(`${API}/closure`, { numbers, guarantee }).then((r) => r.data);
 export const fetchBatches = () => axios.get(`${API}/batches`).then((r) => r.data);
 export const checkBatch = (id, concurso) =>
   axios.get(`${API}/batches/${id}`, { params: concurso ? { concurso } : {} }).then((r) => r.data);

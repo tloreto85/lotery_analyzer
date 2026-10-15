@@ -3,14 +3,15 @@ import "@/App.css";
 import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
 import { Button } from "./components/ui/button";
-import { FileText, FileSpreadsheet, Sparkles, Trash2 } from "lucide-react";
+import { FileText, FileSpreadsheet, Sparkles, Trash2, Grid3x3 } from "lucide-react";
 import { UploadZone } from "./components/lotto/UploadZone";
 import { StatCards } from "./components/lotto/StatCards";
 import { AnalysisTabs } from "./components/lotto/AnalysisTabs";
 import { GeneratorDialog } from "./components/lotto/GeneratorDialog";
 import { GeneratedGames } from "./components/lotto/GeneratedGames";
 import { GameHistory } from "./components/lotto/GameHistory";
-import { uploadContests, fetchStats, clearContests, generateGames, fetchBatches, errMsg } from "./lib/api";
+import { ClosureDialog } from "./components/lotto/ClosureDialog";
+import { uploadContests, fetchStats, clearContests, generateGames, generateClosure, fetchBatches, errMsg } from "./lib/api";
 import { exportStatsTxt, exportStatsXls } from "./lib/exporters";
 
 const WINDOWS = [[0, "Todos"], [10, "10"], [20, "20"], [30, "30"], [50, "50"]];
@@ -24,6 +25,7 @@ export default function App() {
   const [games, setGames] = useState(null);
   const [totalAll, setTotalAll] = useState(0);
   const [batches, setBatches] = useState([]);
+  const [closureOpen, setClosureOpen] = useState(false);
 
   const loadBatches = useCallback(() => fetchBatches().then(setBatches).catch((e) => toast.error(errMsg(e))), []);
 
@@ -47,6 +49,19 @@ export default function App() {
       setDialog({ open: true, ask: true });
     } catch (e) { toast.error(errMsg(e)); }
     setUploading(false);
+  };
+
+  const onClosure = async (nums, guarantee) => {
+    setGenLoading(true);
+    try {
+      const r = await generateClosure(nums, guarantee);
+      setGames(r);
+      setClosureOpen(false);
+      loadBatches();
+      toast.success(`Fechamento gerado: ${r.games.length} jogos.`);
+      setTimeout(() => document.getElementById("games")?.scrollIntoView({ behavior: "smooth" }), 100);
+    } catch (e) { toast.error(errMsg(e)); }
+    setGenLoading(false);
   };
 
   const onGenerate = async (w, q, opts) => {
@@ -98,6 +113,9 @@ export default function App() {
               <Button data-testid="button-export-stats-xls" variant="outline" className="btn-ghost" onClick={() => exportStatsXls(stats)}>
                 <FileSpreadsheet className="w-4 h-4 mr-2" />Salvar XLS
               </Button>
+              <Button data-testid="button-open-closure" variant="outline" className="btn-ghost" onClick={() => setClosureOpen(true)}>
+                <Grid3x3 className="w-4 h-4 mr-2" />Fechamento
+              </Button>
               <Button data-testid="button-open-generator" className="btn-brand" onClick={() => setDialog({ open: true, ask: false })}>
                 <Sparkles className="w-4 h-4 mr-2" />Gerar jogos
               </Button>
@@ -139,6 +157,7 @@ export default function App() {
 
       <GeneratorDialog open={dialog.open} askFirst={dialog.ask} total={totalAll} loading={genLoading}
         onOpenChange={(o) => setDialog((d) => ({ ...d, open: o }))} onGenerate={onGenerate} />
+      {has && <ClosureDialog open={closureOpen} onOpenChange={setClosureOpen} stats={stats} loading={genLoading} onGenerate={onClosure} />}
     </div>
   );
 }

@@ -39,8 +39,16 @@ export const GameCards = ({ games, check, prefix = "" }) => (
 );
 
 export const OptionsSummary = ({ o, testid }) => {
-  if (!o || (!o.fixed?.length && !o.excluded?.length && !o.delayed)) return null;
   const fmt = (a) => a.map((n) => String(n).padStart(2, "0")).join(", ");
+  if (o?.closure) {
+    const { numbers, guarantee } = o.closure;
+    return (
+      <p data-testid={testid} className="text-xs text-slate-400">
+        Fechamento {guarantee === 15 ? "completo" : `garante ${guarantee}`} com {numbers.length} dezenas: <span className="font-mono text-emerald-400">{fmt(numbers)}</span>
+      </p>
+    );
+  }
+  if (!o || (!o.fixed?.length && !o.excluded?.length && !o.delayed)) return null;
   return (
     <p data-testid={testid} className="text-xs text-slate-400 space-x-3">
       {o.fixed?.length > 0 && <span>Fixas: <span className="font-mono text-emerald-400">{fmt(o.fixed)}</span></span>}
@@ -56,7 +64,7 @@ export const GeneratedGames = ({ result }) => (
       <div className="space-y-1">
         <h2 className="font-display text-xl text-white">Jogos gerados ({result.games.length})</h2>
         <p className="text-sm text-slate-400">
-          Baseado nos últimos {result.based_on} concursos salvos · salvo no histórico, será conferido com o concurso #{result.last_concurso + 1}
+          {result.options?.closure ? "Fechamento" : `Baseado nos últimos ${result.based_on} concursos salvos`} · salvo no histórico, será conferido com o concurso #{result.last_concurso + 1}
         </p>
         <OptionsSummary o={result.options} testid="generated-options-summary" />
       </div>
