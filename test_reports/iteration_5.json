@@ -1,0 +1,38 @@
+{
+  "summary": "Tested 3 new features: closures with fixed numbers (+ /closure/preview), /api/performance and bet cost, plus a quick regression. Backend: 87/87 pytest pass (-n 0). This includes a new test_fixed_perf.py that checks the 14/13/15 guarantees by brute force when fixed numbers are used, checks the 422 validations, checks that preview does not save, and checks the /performance numbers by hand against the 301 upload. Frontend: closure modal (cycle none->selected->fixed->none, fixas count, debounced estimate, cost, backend error for full mode with 19 numbers, Fixas summary), costs (default 3.5, saved in localStorage after reload, generator/generated/batch costs update live, BRL format), performance (empty -> table + winner after uploading 301 through the UI), generator, auto check, Atraso tab and TXT/XLS exports all work. DB restored to 300 contests (#1-#300) and the original 13 batches.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/performance", "issue": "Runs one find_contest query per batch (N+1 pattern) and loads at most 1000 batches. Fine at current size."},
+      {"endpoint": "/api/performance", "issue": "Overall rows are averaged per game, so one big closure (e.g. 481 games) dominates 'Fechamento (geral)' and decides the winner. Consider also showing a per-batch average."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PriceSetting", "issue": "Invalid input (empty, 0, -1) is silently ignored: the input shows '-1' while costs keep using the last valid price, with no error or reset on blur.", "selector": "[data-testid='input-bet-price']", "priority": "LOW"},
+      {"component": "ClosureDialog", "issue": "Clicking an unselected number when 20 are already chosen does nothing and shows no feedback.", "selector": "[data-testid^='closure-number-']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Performance section", "issues": ["The title 'Desempenho do gerador' covers both generator and closure; something like 'Desempenho: gerador x fechamento' would be clearer."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_fixed_perf.py", "/app/backend/tests/test_closure.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Optional: validate or reset input-bet-price on blur when the value is <= 0",
+    "Optional: ignore stale preview responses in ClosureDialog (no cancel flag; an earlier slow response could overwrite a newer one)",
+    "Optional: test_lotofacil_api.py (~line 134-147, the /generate window/quantity tests) leaves 3 batches behind on every run. Track them and delete them in teardown."
+  ],
+  "critical_code_review_comments": [
+    "closure_games: covering over the free numbers with k = len(numbers)-15 is correct; brute force confirms the guarantee for every case tested",
+    "ClosureIn's 816 limit for full mode uses comb(n - fixed, n - 15), which matches the real count (19 numbers with 5 fixed = 1001 rejected; 6 fixed = 715 allowed)",
+    "ClosureDialog useEffect preview has no abort or stale guard (race condition)",
+    "Cost.jsx usePrice does not listen to the 'storage' event, so a price change does not sync across tabs (minor)"
+  ],
+  "updated_files": ["/app/backend/tests/test_fixed_perf.py (new)", "/app/backend/tests/test_closure.py (assertions updated: options.closure now includes fixed: [])"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None kept. Uploaded 301 temporarily, then cleared and re-uploaded lotofacil_exemplo.txt (300 contests). Deleted the batches created by tests and the UI; 13 batches remain, as before.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest with -n 0. test_fixed_perf.py::test_performance_manual uploads 301 and restores the 300 contests in a finally block; it requires that no batch has last_concurso=301 and that the DB has #1-#300. test_lotofacil_api.py leaves 3 batches per run. Testids: input-bet-price, generator-cost, generated-cost, batch-cost-i, closure-cost, closure-count, closure-estimate, closure-error, performance-section/empty/winner, table-performance. closure-number-N has data-state none|selected|fixed."
+}

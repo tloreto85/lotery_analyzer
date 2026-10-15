@@ -48,7 +48,7 @@ def test_counts_and_guarantee(s, g, n):
     assert len({tuple(x) for x in games}) == len(games)
     for x in games:
         assert len(x) == 15 and len(set(x)) == 15 and set(x) <= set(nums) and x == sorted(x)
-    assert d["options"]["closure"] == {"numbers": nums, "guarantee": g}
+    assert d["options"]["closure"] == {"numbers": nums, "guarantee": g, "fixed": []}
     if n <= 20:
         gs = [set(x) for x in games]
         for drawn in combinations(nums, 15):
@@ -80,7 +80,7 @@ def test_unsorted_input_sorted_and_batch_listed(s):
     assert d["options"]["closure"]["numbers"] == list(range(1, 18))
     batches = s.get(f"{API}/batches").json()
     b = next(x for x in batches if x["id"] == d["id"])
-    assert b["options"]["closure"] == {"numbers": list(range(1, 18)), "guarantee": 14}
+    assert b["options"]["closure"] == {"numbers": list(range(1, 18)), "guarantee": 14, "fixed": []}
     assert len(b["games"]) == 8
     # conferir against an existing contest
     one = s.get(f"{API}/batches/{d['id']}", params={"concurso": 300})

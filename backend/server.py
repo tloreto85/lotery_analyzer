@@ -395,12 +395,14 @@ async def performance():
         hits = check_batch(b, contest)["check"]["hits"]
         typ, label = group_key(b)
         for key in ((typ, label), (typ, "Gerador (geral)" if typ == "gerador" else "Fechamento (geral)")):
-            g = groups.setdefault(key, {"type": typ, "label": key[1], "overall": key[1].endswith("(geral)"), "batches": 0, "hits": []})
+            g = groups.setdefault(key, {"type": typ, "label": key[1], "overall": key[1].endswith("(geral)"), "batches": 0, "hits": [], "batch_avgs": []})
             g["batches"] += 1
             g["hits"] += hits
+            g["batch_avgs"].append(statistics.mean(hits))
     out = []
     for g in groups.values():
         h = g.pop("hits")
+        g["avg_batch"] = round(statistics.mean(g.pop("batch_avgs")), 2)
         g.update({"games": len(h), "avg": round(statistics.mean(h), 2), "best": max(h),
                   "pct_11": pct(sum(1 for x in h if x >= 11), len(h)),
                   "tiers": {str(k): h.count(k) for k in range(11, 16)}})

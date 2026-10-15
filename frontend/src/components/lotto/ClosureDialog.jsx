@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { previewClosure, errMsg } from "../../lib/api";
 import { CostBadge } from "./Cost";
 
@@ -28,7 +29,7 @@ export const ClosureDialog = ({ open, onOpenChange, stats, loading, onGenerate }
   const sort = (a) => [...a].sort((x, y) => x - y);
   const toggle = (n) => {
     const s = state(n);
-    if (s === "none" && sel.length < 20) setSel(sort([...sel, n]));
+    if (s === "none") sel.length < 20 ? setSel(sort([...sel, n])) : toast.info("Máximo de 20 dezenas no fechamento.");
     if (s === "selected") setFixed(sort([...fixed, n]));
     if (s === "fixed") { setFixed(fixed.filter((x) => x !== n)); setSel(sel.filter((x) => x !== n)); }
   };
@@ -40,11 +41,12 @@ export const ClosureDialog = ({ open, onOpenChange, stats, loading, onGenerate }
 
   useEffect(() => {
     if (error) { setPreview({ count: null, error: null }); return; }
+    let alive = true;
     const t = setTimeout(() => {
-      previewClosure(sel, mode, fixed).then((r) => setPreview({ count: r.count, error: null }))
-        .catch((e) => setPreview({ count: null, error: errMsg(e) }));
+      previewClosure(sel, mode, fixed).then((r) => alive && setPreview({ count: r.count, error: null }))
+        .catch((e) => alive && setPreview({ count: null, error: errMsg(e) }));
     }, 300);
-    return () => clearTimeout(t);
+    return () => { alive = false; clearTimeout(t); };
   }, [sel, fixed, mode, error]);
 
   const msg = error || preview.error;

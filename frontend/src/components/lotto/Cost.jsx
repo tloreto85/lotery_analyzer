@@ -32,6 +32,7 @@ export const PriceSetting = () => {
       Valor da aposta (15 dezenas) R$
       <Input data-testid="input-bet-price" type="number" step="0.5" min="0.5" defaultValue={price}
         onChange={(e) => Number(e.target.value) > 0 && setPrice(Number(e.target.value))}
+        onBlur={(e) => { if (!(Number(e.target.value) > 0)) e.target.value = getPrice(); }}
         className="w-20 h-8 bg-slate-900 border-slate-700 font-mono text-xs" />
     </label>
   );
