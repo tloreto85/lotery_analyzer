@@ -1,21 +1,21 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 
-const Tip = ({ active, payload, label }) =>
+const Tip = ({ active, payload, label, unit = "vezes" }) =>
   active && payload?.length ? (
     <div className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-xs">
       <p className="text-slate-400">{label}</p>
-      <p className="font-mono text-emerald-400">{payload[0].value} vezes</p>
+      <p className="font-mono text-emerald-400">{payload[0].value} {unit}</p>
     </div>
   ) : null;
 
-export const Bars = ({ data, x, y = "count", height = 240, highlight }) => (
+export const Bars = ({ data, x, y = "count", height = 240, highlight, unit }) => (
   <div style={{ height }} className="w-full">
     <ResponsiveContainer>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
         <CartesianGrid stroke="#1F2937" vertical={false} />
         <XAxis dataKey={x} tick={{ fill: "#9CA3AF", fontSize: 11 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: "#6B7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-        <Tooltip content={<Tip />} cursor={{ fill: "rgba(16,185,129,0.08)" }} />
+        <YAxis allowDecimals={false} tick={{ fill: "#6B7280", fontSize: 11 }} axisLine={false} tickLine={false} />
+        <Tooltip content={<Tip unit={unit} />} cursor={{ fill: "rgba(16,185,129,0.08)" }} />
         <Bar dataKey={y} radius={[4, 4, 0, 0]}>
           {data.map((d, i) => (
             <Cell key={i} fill={highlight && highlight(d) ? "#F59E0B" : "#10B981"} />

@@ -153,6 +153,16 @@ def compute_stats(contests: List[Contest]):
                       for (k, e), v in sorted(rep_par.items(), key=lambda x: (-x[0][0], -x[1]))]
     avg_rep = round(sum(k * v for k, v in rep.items()) / rep_total, 2) if rep_total else 0
 
+    delays = []
+    for n in range(1, 26):
+        idx = [i for i, d in enumerate(draws) if n in d]
+        bounds = [-1] + idx + [total]
+        gaps = [b - a - 1 for a, b in zip(bounds, bounds[1:])]
+        delays.append({"number": n, "current": gaps[-1], "max": max(gaps),
+                       "avg": round(statistics.mean(gaps), 2),
+                       "last_seen": contests[idx[-1]].concurso if idx else None})
+    delays.sort(key=lambda x: (-x["current"], -x["max"]))
+
     return {
         "total": total,
         "first_concurso": contests[0].concurso,
@@ -168,6 +178,7 @@ def compute_stats(contests: List[Contest]):
         "repeats": repeats,
         "repeats_parity": repeats_parity,
         "avg_repeats": avg_rep,
+        "delays": delays,
     }
 
 

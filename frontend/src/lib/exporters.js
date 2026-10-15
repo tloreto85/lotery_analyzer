@@ -22,6 +22,7 @@ const statsSections = (s) => [
   ["Repetidos do concurso anterior (repetidos,vezes,%)", s.repeats.map((r) => [r.repeated, r.count, r.pct])],
   ["Repetidos - pares x impares (repetidos,pares,impares,vezes,%)", s.repeats_parity.map((r) => [r.repeated, r.even, r.odd, r.count, r.pct])],
   ["Frequencia geral (numero,vezes,%)", s.number_freq.map((f) => [f.number, f.count, f.pct])],
+  ["Atraso das dezenas (numero,atraso atual,atraso maximo,atraso medio,ultimo concurso)", s.delays.map((d) => [d.number, d.current, d.max, d.avg, d.last_seen ?? ""])],
 ];
 
 const fname = (base, ext) => `${base}_${new Date().toISOString().slice(0, 10)}.${ext}`;

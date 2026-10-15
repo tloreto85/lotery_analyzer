@@ -83,12 +83,41 @@ const Repeats = ({ s }) => (
   </div>
 );
 
+const Delays = ({ s }) => {
+  const top = s.delays.filter((d) => d.current > 0).slice(0, 5).map((d) => d.number);
+  const byNum = [...s.delays].sort((a, b) => a.number - b.number);
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <Block title="Mais atrasadas" desc={`Há quantos concursos cada dezena não sai (até #${s.last_concurso}). Em dourado, as 5 mais atrasadas.`}>
+        <div data-testid="delay-top" className="flex flex-wrap gap-3 mb-5">
+          {top.length ? s.delays.slice(0, top.length).map((d) => (
+            <div key={d.number} className="flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2">
+              <Ball n={d.number} tone="gold" />
+              <span className="font-mono text-amber-300 text-lg">{d.current}</span>
+            </div>
+          )) : <p className="text-sm text-slate-500">Todas as dezenas saíram no último concurso.</p>}
+        </div>
+        <Bars data={byNum.map((d) => ({ ...d, name: String(d.number).padStart(2, "0") }))} x="name" y="current" height={220}
+          highlight={(d) => top.includes(d.number)} unit="concursos" />
+      </Block>
+      <Block title="Atraso por dezena" desc="Atual = concursos seguidos sem sair · Máximo e médio = intervalos entre aparições">
+        <div className="max-h-[520px] overflow-y-auto pr-1">
+          <Rows testid="table-delays" head={["Dezena", "Atual", "Máximo", "Médio", "Último"]}
+            rows={s.delays.map((d) => [<Ball key={d.number} n={d.number} size="sm" tone={top.includes(d.number) ? "gold" : "brand"} />,
+              d.current, d.max, d.avg, d.last_seen ? `#${d.last_seen}` : "—"])} />
+        </div>
+      </Block>
+    </div>
+  );
+};
+
 const TABS = [
   ["primeira-linha", "Primeira linha", FirstLine],
   ["combinacoes", "3 ou 4 juntos", Combos],
   ["soma", "Soma", Sum],
   ["pares-impares", "Pares x Ímpares", Parity],
   ["repetidos", "Repetidos", Repeats],
+  ["atraso", "Atraso", Delays],
 ];
 
 export const AnalysisTabs = ({ s }) => (
