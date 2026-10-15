@@ -1,0 +1,154 @@
+{
+  "project_name": "Lotofácil Analytics & Game Generator",
+  "language": "pt-BR",
+  "app_type": "dashboard",
+  "code_type": "javascript",
+  "file_extensions": [".js", ".jsx"],
+  "design_archetype": "High-Precision Analytical Dashboard (Lotofácil Green & Slate Theme)",
+  "color_palette": {
+    "background_dark": "#0B0F19",
+    "card_bg": "#111827",
+    "card_border": "#1F2937",
+    "primary_brand": "#10B981",
+    "primary_brand_hover": "#059669",
+    "primary_brand_light": "rgba(16, 185, 129, 0.15)",
+    "accent_gold": "#F59E0B",
+    "accent_gold_light": "rgba(245, 158, 11, 0.15)",
+    "accent_blue": "#3B82F6",
+    "accent_purple": "#8B5CF6",
+    "text_primary": "#F9FAFB",
+    "text_secondary": "#9CA3AF",
+    "text_muted": "#6B7280",
+    "even_number_badge": "#3B82F6",
+    "odd_number_badge": "#F59E0B",
+    "lotofacil_ball_active": "#10B981",
+    "lotofacil_ball_inactive": "#1F2937",
+    "chart_colors": ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6", "#EC4899", "#14B8A6"]
+  },
+  "forbidden_colors": ["#1B93A4", "#7351B7"],
+  "typography": {
+    "heading_font": "Outfit, sans-serif",
+    "body_font": "Inter, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "hierarchy": {
+      "h1_title": "text-3xl font-bold tracking-tight text-white sm:text-4xl",
+      "h2_section": "text-xl font-semibold text-white tracking-tight",
+      "h3_card_title": "text-base font-medium text-slate-200",
+      "metric_value": "text-2xl sm:text-3xl font-bold font-mono text-emerald-400",
+      "label": "text-xs font-semibold uppercase tracking-wider text-slate-400",
+      "body": "text-sm text-slate-300",
+      "mono_numbers": "font-mono font-medium tracking-wide text-slate-100"
+    }
+  },
+  "spacing_and_layout": {
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6",
+    "bento_layout": "grid grid-cols-1 lg:grid-cols-12 gap-6",
+    "card_padding": "p-5 sm:p-6",
+    "border_radius": "rounded-xl border border-slate-800 bg-slate-900/90 shadow-xl backdrop-blur-md"
+  },
+  "components_structure": {
+    "header": {
+      "title": "Lotofácil Analytics & Gerador Pro",
+      "subtitle": "Análise estatística avançada e gerador inteligente de jogos baseados nos últimos concursos",
+      "actions": ["Upload TXT", "Gerar Jogos", "Exportar Estatísticas TXT", "Exportar Estatísticas XLS"]
+    },
+    "upload_zone": {
+      "title": "Upload de Concursos (TXT)",
+      "description": "Arraste e solte o arquivo txt com os jogos da Lotofácil ou clique para selecionar",
+      "features": ["Pré-visualização automática", "Suporte a múltiplos formatos de separador (espaço, vírgula, hífen)", "Prompt para gerar jogos a cada novo upload"]
+    },
+    "key_stat_cards": [
+      {"id": "stat-total-concursos", "label": "Total de Concursos", "icon": "Database"},
+      {"id": "stat-soma-media", "label": "Média da Soma", "icon": "Calculator"},
+      {"id": "stat-desvio-padrao", "label": "Desvio Padrão", "icon": "TrendingUp"},
+      {"id": "stat-soma-min-max", "label": "Intervalo (Mín - Máx)", "icon": "Activity"},
+      {"id": "stat-repetidos-medio", "label": "Média de Repetidos", "icon": "Repeat"}
+    ],
+    "tabs_analysis": [
+      {
+        "id": "primeira-linha",
+        "title": "Primeira Linha (1 a 5)",
+        "content": "Números de 1 a 5 mais repetidos e frequência de quantidade sorteados juntos (ex: 1 número 3x, 2 números 4x...)"
+      },
+      {
+        "id": "combinacoes-frequentes",
+        "title": "3 ou 4 Números Juntos",
+        "content": "Identificação de trincas (3 números) e quadras (4 números) que mais tendem a sair no mesmo concurso"
+      },
+      {
+        "id": "soma-estatisticas",
+        "title": "Intervalo da Soma",
+        "content": "Faixas de soma mais frequentes (histograma), média, mínimo, máximo e desvio padrão com visualização de distribuição"
+      },
+      {
+        "id": "pares-impares",
+        "title": "Pares x Ímpares",
+        "content": "Distribuição de proporção par/ímpar nos concursos (ex: 8P x 7Í, 7P x 8Í)"
+      },
+      {
+        "id": "repetidos-concurso",
+        "title": "Repetidos Consecutivos",
+        "content": "Quantidade de números repetidos de um concurso para o outro e a proporção de pares x ímpares dentro desses repetidos"
+      }
+    ],
+    "game_generator_modal": {
+      "title": "Gerador de Jogos Lotofácil",
+      "options": {
+        "concursos_window": [10, 20, 30, 50, "Todos"],
+        "games_count": "1 a 100 jogos (máximo 100)",
+        "strategy": "Balanceamento por frequência da janela selecionada, paridade e intervalo de soma ideal"
+      },
+      "export": "Exportar TXT apenas com números separados por vírgula (ex: 01,02,03...)"
+    }
+  },
+  "lotofacil_ball_display": {
+    "grid_layout": "grid grid-cols-5 gap-2 w-full max-w-xs sm:max-w-sm",
+    "ball_style": "w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-mono font-bold text-xs sm:text-sm transition-all duration-200",
+    "selected_ball": "bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/30 scale-105 ring-2 ring-emerald-400",
+    "unselected_ball": "bg-slate-800 text-slate-500 border border-slate-700/60"
+  },
+  "data_testid_manifest": {
+    "file_upload_input": "file-upload-input",
+    "file_dropzone": "file-dropzone",
+    "upload_trigger_button": "upload-trigger-button",
+    "stat_total_concursos": "stat-total-concursos",
+    "stat_soma_media": "stat-soma-media",
+    "stat_desvio_padrao": "stat-desvio-padrao",
+    "stat_soma_min_max": "stat-soma-min-max",
+    "stat_repetidos_medio": "stat-repetidos-medio",
+    "tab_primeira_linha": "tab-primeira-linha",
+    "tab_combinacoes": "tab-combinacoes",
+    "tab_soma": "tab-soma",
+    "tab_pares_impares": "tab-pares-impares",
+    "tab_repetidos": "tab-repetidos",
+    "button_export_stats_txt": "button-export-stats-txt",
+    "button_export_stats_xls": "button-export-stats-xls",
+    "button_open_generator": "button-open-generator",
+    "modal_generator": "modal-generator",
+    "select_concursos_window": "select-concursos-window",
+    "input_games_count": "input-games-count",
+    "button_generate_games": "button-generate-games",
+    "generated_games_container": "generated-games-container",
+    "generated_game_item": "generated-game-item-",
+    "button_export_games_txt": "button-export-games-txt"
+  },
+  "interactive_states": {
+    "buttons": "hover:bg-emerald-600 active:scale-95 transition-all duration-150 focus:ring-2 focus:ring-emerald-400 focus:outline-none",
+    "tabs": "data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:font-bold text-slate-400 hover:text-white transition-all",
+    "cards": "hover:border-slate-700 transition-colors duration-200"
+  },
+  "export_requirements": {
+    "stats_txt": "Formato estruturado com títulos, tabelas em formato texto e resumo executivo.",
+    "stats_xls": "Arquivo CSV/XLS compatível com Excel contendo abas/seções de Frequência, Soma, Paridade e Repetidos.",
+    "games_txt": "Apenas números de 01 a 25 separados por vírgula em cada linha (sem texto extra por linha, ex: 01,02,03,04,05,06,07,08,10,12,14,15,18,20,25)."
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "All interactive elements MUST include data-testid attributes as specified in data_testid_manifest.",
+    "UI text MUST be in Portuguese (pt-BR).",
+    "Never use transparent backgrounds on dropdowns, modals, or fixed headers; use backdrop-blur with slate-900/90.",
+    "Ensure high contrast on hover states (e.g., hover:bg-emerald-600 hover:text-white).",
+    "Support drag-and-drop file upload with immediate stats parsing and auto-prompting the generator modal.",
+    "Use Recharts for clear, responsive data visualisations with custom dark tooltips.",
+    "Use Sonner toasts for notifications (e.g., file parsed, export completed, games generated)."
+  ]
+}
