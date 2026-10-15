@@ -58,10 +58,12 @@ export default function App() {
 
   const onClear = async () => {
     if (!window.confirm("Apagar todo o histórico de concursos salvos?")) return;
-    await clearContests();
-    setGames(null);
-    toast.success("Histórico apagado.");
-    load(win);
+    try {
+      await clearContests();
+      setGames(null);
+      toast.success("Histórico apagado.");
+      load(win);
+    } catch (e) { toast.error(errMsg(e)); }
   };
 
   const has = stats && stats.total > 0;

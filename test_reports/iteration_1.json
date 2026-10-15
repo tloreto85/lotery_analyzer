@@ -1,0 +1,35 @@
+{
+  "summary": "Full backend (21 pytest tests) + frontend E2E (desktop 1920 + mobile 390) of Lotofácil analyzer. All requested features work: upload of 300-contest sample (toast '300 novos concursos salvos.'), re-upload skips 300 ('0 novos..., 300 já existiam'), post-upload ask modal (yes/no), window options 10/20/30/50/0, qty >100 and 0 show games-count-error + disabled button, generation of N unique 15-number games on the chosen window (based_on correct), 5 tabs render tables, stats-window-{0,10,20,30,50} change totals (#291-#300 etc.), 4 exports download (games TXT strictly 'n,n,...' 15 per line), clear-history confirm -> empty-state. Statistics checked against hand-computed values on a small 3-contest dataset (first-line freq/together, parity, repeats, repeats parity label, top trio/quad counts, sum min/max/mean) - all correct. Perf: 3300 contests upload 1.4s, stats 0.57s, generate 100 games 0.6s.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/stats", "issue": "repeats_parity label grammar: '10 repetidos - 1 pares x 9 ímpares' (singular should be '1 par'/'1 ímpar') - cosmetic"},
+      {"endpoint": "/api/contests/upload", "issue": "Lines with exactly 15 numbers are treated as no-contest-number; lines without contest number are deduped by number set (a genuinely repeated draw would be skipped) - acceptable edge case, just note"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Error toast", "issue": "errMsg returns e.response.data.detail which for 422 is an array of objects; toast.error(array) would render badly. UI prevents >100 but decimal qty (e.g. 5.5) passes client validation and gets 422 from backend", "affected_selectors": ["input-games-count"]},
+      {"flow": "Clear history", "issue": "onClear has no try/catch - a failed DELETE causes unhandled promise rejection with no toast", "affected_selectors": ["button-clear-history"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_lotofacil_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "(Minor) Validate qty is integer in GeneratorDialog (Number.isInteger) and make errMsg handle array detail (map .msg)",
+    "(Minor) Wrap onClear in try/catch with toast.error",
+    "(Minor) Singular/plural in repeats_parity label ('1 par', '1 ímpar')"
+  ],
+  "critical_code_review_comments": [
+    "backend/pytest.ini enforces '-n auto' (xdist); test_lotofacil_api.py is stateful (shared DB) and MUST be run with '-n 0' or tests race and fail",
+    "Upload inserts docs one-by-one (insert_one in loop) - could use insert_many for large files; currently fast enough (3300 in 1.4s)",
+    "Stats recomputes trios/quads from all contests on every request; OK at 3300 contests (0.57s)"
+  ],
+  "updated_files": ["/app/backend/tests/test_lotofacil_api.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "DB left with the 300 contests from /app/tests/data/lotofacil_exemplo.txt (uploaded via UI in last mobile test).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run backend tests with: REACT_APP_BACKEND_URL=... pytest /app/backend/tests/test_lotofacil_api.py -n 0 -v (tests DELETE all contests). Frontend selectors all present as per review request; window.confirm needs a page dialog handler."
+}

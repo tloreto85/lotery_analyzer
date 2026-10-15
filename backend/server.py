@@ -126,7 +126,9 @@ def compute_stats(contests: List[Contest]):
         rep_par[(len(common), e)] += 1
     rep_total = max(total - 1, 0)
     repeats = [{"repeated": k, "count": v, "pct": pct(v, rep_total)} for k, v in sorted(rep.items())]
-    repeats_parity = [{"repeated": k, "even": e, "odd": k - e, "label": f"{k} repetidos - {e} pares x {k - e} ímpares",
+    plural = lambda n, s, p: f"{n} {s if n == 1 else p}"
+    repeats_parity = [{"repeated": k, "even": e, "odd": k - e,
+                       "label": f"{plural(k, 'repetido', 'repetidos')} - {plural(e, 'par', 'pares')} x {plural(k - e, 'ímpar', 'ímpares')}",
                        "count": v, "pct": pct(v, rep_total)}
                       for (k, e), v in sorted(rep_par.items(), key=lambda x: (-x[0][0], -x[1]))]
     avg_rep = round(sum(k * v for k, v in rep.items()) / rep_total, 2) if rep_total else 0

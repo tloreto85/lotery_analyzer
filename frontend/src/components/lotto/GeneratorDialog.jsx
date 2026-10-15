@@ -13,7 +13,7 @@ export const GeneratorDialog = ({ open, onOpenChange, askFirst, total, loading, 
 
   useEffect(() => { if (open) setStep(askFirst ? "ask" : "config"); }, [open, askFirst]);
 
-  const valid = qty >= 1 && qty <= 100;
+  const valid = Number.isInteger(qty) && qty >= 1 && qty <= 100;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
