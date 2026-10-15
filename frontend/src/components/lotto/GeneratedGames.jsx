@@ -1,6 +1,7 @@
 import { Button } from "../ui/button";
 import { FileText, FileSpreadsheet } from "lucide-react";
 import { BallGrid } from "./Ball";
+import { CostBadge } from "./Cost";
 import { exportGamesTxt, exportGamesXls } from "../../lib/exporters";
 
 export const ExportButtons = ({ games, prefix = "" }) => (
@@ -41,10 +42,11 @@ export const GameCards = ({ games, check, prefix = "" }) => (
 export const OptionsSummary = ({ o, testid }) => {
   const fmt = (a) => a.map((n) => String(n).padStart(2, "0")).join(", ");
   if (o?.closure) {
-    const { numbers, guarantee } = o.closure;
+    const { numbers, guarantee, fixed } = o.closure;
     return (
       <p data-testid={testid} className="text-xs text-slate-400">
         Fechamento {guarantee === 15 ? "completo" : `garante ${guarantee}`} com {numbers.length} dezenas: <span className="font-mono text-emerald-400">{fmt(numbers)}</span>
+        {fixed?.length > 0 && <> · Fixas: <span className="font-mono text-amber-300">{fmt(fixed)}</span></>}
       </p>
     );
   }
@@ -68,7 +70,10 @@ export const GeneratedGames = ({ result }) => (
         </p>
         <OptionsSummary o={result.options} testid="generated-options-summary" />
       </div>
-      <ExportButtons games={result.games} />
+      <div className="flex flex-wrap items-center gap-3">
+        <CostBadge count={result.games.length} testid="generated-cost" />
+        <ExportButtons games={result.games} />
+      </div>
     </div>
     <GameCards games={result.games} />
   </section>

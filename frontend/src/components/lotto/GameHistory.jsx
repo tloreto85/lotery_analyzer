@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { BallRow } from "./Ball";
 import { GameCards, ExportButtons, OptionsSummary } from "./GeneratedGames";
+import { CostBadge, PriceSetting } from "./Cost";
 import { checkBatch, deleteBatch, errMsg } from "../../lib/api";
 
 const fmtDate = (iso) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
@@ -55,7 +56,8 @@ const BatchItem = ({ batch, i, onDeleted }) => {
                 value={num} onChange={(e) => setNum(e.target.value)} className="w-56 h-9 bg-slate-900 border-slate-700 font-mono text-sm" />
               <Button data-testid={`batch-check-button-${i}`} size="sm" className="btn-brand" onClick={recheck}><Search className="w-4 h-4 mr-1" />Conferir</Button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <CostBadge count={data.games.length} testid={`batch-cost-${i}`} />
               <ExportButtons games={data.games} prefix={`batch-${i}-`} />
               <Button data-testid={`batch-delete-${i}`} variant="ghost" size="sm" className="text-slate-500 hover:text-red-400 hover:bg-transparent" onClick={remove}><Trash2 className="w-4 h-4" /></Button>
             </div>
@@ -78,9 +80,12 @@ const BatchItem = ({ batch, i, onDeleted }) => {
 
 export const GameHistory = ({ batches, onChange }) => (
   <section data-testid="games-history" className="space-y-4">
-    <div>
-      <h2 className="font-display text-xl text-white">Histórico de jogos ({batches.length})</h2>
-      <p className="text-sm text-slate-400">Cada lote é conferido automaticamente quando o concurso seguinte for carregado. Dezenas acertadas em dourado.</p>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 className="font-display text-xl text-white">Histórico de jogos ({batches.length})</h2>
+        <p className="text-sm text-slate-400">Cada lote é conferido automaticamente quando o concurso seguinte for carregado. Dezenas acertadas em dourado.</p>
+      </div>
+      <PriceSetting />
     </div>
     {batches.length === 0 ? (
       <p data-testid="games-history-empty" className="text-sm text-slate-500">Nenhum jogo gerado ainda.</p>

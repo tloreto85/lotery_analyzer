@@ -11,6 +11,7 @@ import { GeneratorDialog } from "./components/lotto/GeneratorDialog";
 import { GeneratedGames } from "./components/lotto/GeneratedGames";
 import { GameHistory } from "./components/lotto/GameHistory";
 import { ClosureDialog } from "./components/lotto/ClosureDialog";
+import { Performance } from "./components/lotto/Performance";
 import { uploadContests, fetchStats, clearContests, generateGames, generateClosure, fetchBatches, errMsg } from "./lib/api";
 import { exportStatsTxt, exportStatsXls } from "./lib/exporters";
 
@@ -51,10 +52,10 @@ export default function App() {
     setUploading(false);
   };
 
-  const onClosure = async (nums, guarantee) => {
+  const onClosure = async (nums, guarantee, fixed) => {
     setGenLoading(true);
     try {
-      const r = await generateClosure(nums, guarantee);
+      const r = await generateClosure(nums, guarantee, fixed);
       setGames(r);
       setClosureOpen(false);
       loadBatches();
@@ -151,6 +152,8 @@ export default function App() {
         )}
 
         {games && <div id="games"><GeneratedGames result={games} /></div>}
+
+        <Performance refreshKey={batches} />
 
         <GameHistory batches={batches} onChange={loadBatches} />
       </div>

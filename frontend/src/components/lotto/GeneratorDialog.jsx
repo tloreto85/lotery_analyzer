@@ -5,6 +5,7 @@ import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
 import { NumberPicker } from "./NumberPicker";
 import { BallRow } from "./Ball";
+import { CostBadge } from "./Cost";
 import { fetchStats } from "../../lib/api";
 
 const WINDOWS = [[10, "Últimos 10"], [20, "Últimos 20"], [30, "Últimos 30"], [50, "Últimos 50"], [0, "Todos"]];
@@ -86,6 +87,7 @@ export const GeneratorDialog = ({ open, onOpenChange, askFirst, total, loading, 
                   <label className="label" htmlFor="qty">Quantos jogos? (máximo 100)</label>
                   <Input id="qty" data-testid="input-games-count" type="number" min={1} max={100} value={qty}
                     onChange={(e) => setQty(Number(e.target.value))} className="mt-2 bg-slate-900 border-slate-700 font-mono" />
+                  {!error && <div className="mt-2"><CostBadge count={qty} testid="generator-cost" /></div>}
                 </div>
               </div>
             </div>
