@@ -4,7 +4,7 @@ import { ChevronDown, Trash2, Search } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { BallRow } from "./Ball";
-import { GameCards, ExportButtons } from "./GeneratedGames";
+import { GameCards, ExportButtons, OptionsSummary } from "./GeneratedGames";
 import { checkBatch, deleteBatch, errMsg } from "../../lib/api";
 
 const fmtDate = (iso) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
@@ -48,6 +48,7 @@ const BatchItem = ({ batch, i, onDeleted }) => {
       </button>
       {open && (
         <div className="border-t border-slate-800 p-4 space-y-4">
+          <OptionsSummary o={data.options} testid={`batch-options-${i}`} />
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Input data-testid={`batch-check-input-${i}`} type="number" placeholder={`Concurso (padrão #${data.last_concurso + 1})`}

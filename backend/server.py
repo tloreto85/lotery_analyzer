@@ -10,7 +10,7 @@ import statistics
 from collections import Counter
 from itertools import combinations
 from pathlib import Path
-from pydantic import BaseModel, Field, BeforeValidator, ConfigDict
+from pydantic import BaseModel, Field, BeforeValidator, ConfigDict, model_validator
 from typing import List, Optional, Annotated
 from datetime import datetime, timezone
 from bson import ObjectId
@@ -53,6 +53,7 @@ class GameBatch(BaseDocument):
     based_on: int
     last_concurso: int
     games: List[dict]
+    options: dict = {}
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -74,6 +75,23 @@ class UploadIn(BaseModel):
 class GenerateIn(BaseModel):
     window: int = 0
     quantity: int = Field(ge=1, le=100)
+    fixed: List[int] = []
+    excluded: List[int] = []
+    delayed: int = Field(default=0, ge=0, le=2)
+
+    @model_validator(mode="after")
+    def check_numbers(self):
+        f, e = set(self.fixed), set(self.excluded)
+        if any(n < 1 or n > 25 for n in f | e):
+            raise ValueError("Dezenas devem estar entre 1 e 25.")
+        if f & e:
+            raise ValueError("Uma dezena não pode ser fixa e excluída ao mesmo tempo.")
+        if len(f) + self.delayed > 15:
+            raise ValueError("Dezenas fixas + atrasadas não podem passar de 15.")
+        if 25 - len(e) < 15:
+            raise ValueError("Exclua no máximo 10 dezenas.")
+        self.fixed, self.excluded = sorted(f), sorted(e)
+        return self
 
 
 def parse_text(content: str):
@@ -192,7 +210,7 @@ def top_values(items, key, cover=0.7):
     return chosen
 
 
-def generate_games(stats, quantity):
+def generate_games(stats, quantity, fixed=(), excluded=(), delayed=0):
     weights = {f["number"]: f["count"] + 1 for f in stats["number_freq"]}
     s = stats["sum"]
     lo, hi = s["mean"] - s["std"], s["mean"] + s["std"]
@@ -200,15 +218,21 @@ def generate_games(stats, quantity):
     ok_first = top_values([f for f in stats["first_line_together"] if f["count"]], "qty")
     ok_rep = top_values(stats["repeats"], "repeated") if stats["repeats"] else None
     last = set(stats["last_numbers"])
-    pool = list(range(1, 26))
+    fixed, excluded = set(fixed), set(excluded)
+    pool = [n for n in range(1, 26) if n not in excluded]
+    late = [d["number"] for d in stats["delays"] if d["current"] > 0 and d["number"] not in fixed | excluded][:5]
     games, seen = [], set()
     limit = quantity * 3000
     for i in range(limit + quantity * 50):
         if len(games) >= quantity:
             break
-        picked = set()
+        chosen_late = set(random.sample(late, min(delayed, len(late))))
+        picked = set(fixed) | chosen_late
+        blocked = set(late) - chosen_late if delayed else set()
+        if len(set(pool) - blocked) < 15:
+            blocked = set()
         while len(picked) < 15:
-            cand = [n for n in pool if n not in picked]
+            cand = [n for n in pool if n not in picked and n not in blocked]
             picked.add(random.choices(cand, weights=[weights[n] for n in cand])[0])
         g = tuple(sorted(picked))
         if g in seen:
@@ -223,7 +247,7 @@ def generate_games(stats, quantity):
         seen.add(g)
         games.append(g)
     return [{"numbers": list(g), "sum": sum(g), "even": sum(1 for n in g if n % 2 == 0),
-             "repeated": len(last & set(g))} for g in games]
+             "repeated": len(last & set(g)), "late": [n for n in g if n in late]} for g in games], late
 
 
 @api_router.get("/")
@@ -281,8 +305,10 @@ async def generate(payload: GenerateIn):
     st = compute_stats(await load_contests(payload.window))
     if st["total"] == 0:
         raise HTTPException(400, "Nenhum concurso salvo. Faça upload de um arquivo primeiro.")
+    games, late = generate_games(st, payload.quantity, payload.fixed, payload.excluded, payload.delayed)
+    options = {"fixed": sorted(payload.fixed), "excluded": sorted(payload.excluded), "delayed": payload.delayed, "late": late}
     batch = GameBatch(window=payload.window, based_on=st["total"], last_concurso=st["last_concurso"],
-                      games=generate_games(st, payload.quantity))
+                      games=games, options=options)
     r = await db.game_batches.insert_one(batch.to_mongo())
     batch.id = str(r.inserted_id)
     return check_batch(batch, None)

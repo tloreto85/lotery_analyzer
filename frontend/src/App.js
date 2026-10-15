@@ -49,14 +49,16 @@ export default function App() {
     setUploading(false);
   };
 
-  const onGenerate = async (w, q) => {
+  const onGenerate = async (w, q, opts) => {
     setGenLoading(true);
     try {
-      const r = await generateGames(w, q);
+      const r = await generateGames(w, q, opts);
       setGames(r);
       setDialog({ open: false, ask: false });
       loadBatches();
-      toast.success(`${r.games.length} jogos gerados.`);
+      toast.success(r.games.length < q
+        ? `${r.games.length} de ${q} jogos gerados (as restrições não permitem mais jogos diferentes).`
+        : `${r.games.length} jogos gerados.`);
       setTimeout(() => document.getElementById("games")?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) { toast.error(errMsg(e)); }
     setGenLoading(false);
