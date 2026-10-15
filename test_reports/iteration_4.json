@@ -1,0 +1,25 @@
+{
+  "summary": "Tested the Fechamento (closure) feature end-to-end. Backend: new test_closure.py (24 tests). Counts for every (guarantee, n) pair match the expected values. A brute-force check over all C(n,15) possible draws passed for every n from 16 to 20, including n=20. Validation returns 422 as expected, no contests returns 400, and batch persistence and conferir work. The full regression suite passed 76/76 (-n 0). Frontend: modal, toggling, the 20-number limit, suggest, clear, modes, estimate, error, the disabled button, generation, the summary, the toast, history batch-options and conferir all work. Regression on the generator modal, Atraso tab and TXT export passed. No console errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Closure modal estimate", "issues": ["Grammar: 'Serão gerados 1 jogos.' should be singular ('Será gerado 1 jogo.')"]},
+      {"screen": "Games history header for closure batches", "issues": ["Header shows 'base: últimos 300 (até #300)' for closure batches. This is misleading because closures do not use statistics; consider showing 'Fechamento' in the header"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_closure.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": ["Optional: fix the singular/plural grammar in closure-estimate", "Optional: label closure batches as 'Fechamento' in the history header instead of 'base: últimos N'"],
+  "critical_code_review_comments": [
+    "closure_games greedy is O(C(n,k)^2) for initial gain. n=20 g14 takes about 0.8s, which is acceptable. It runs synchronously in the async endpoint and blocks the event loop briefly; consider run_in_threadpool",
+    "Frontend COUNTS table is hardcoded and duplicates the backend's deterministic results. It is correct now but will drift if the algorithm changes",
+    "Existing test_lotofacil_api.py leaves some generated batches (1/10/100 games) in the DB on each run (pre-existing, minor)"
+  ],
+  "updated_files": ["/app/backend/tests/test_closure.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None. test_no_contests_400 backs up all 300 contests, clears them, then re-uploads them. The DB still has 300 contests (#1-#300). Batches created by the UI tests were deleted.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest with -n 0. test_closure.py brute-forces the guarantee for n up to 20 (~5s total). Testids: button-open-closure, modal-closure, closure-number-N, closure-suggest-K, closure-mode-M, closure-estimate, closure-error, button-generate-closure. History: batch-toggle-i, batch-options-i, batch-check-input-i, batch-check-button-i."
+}

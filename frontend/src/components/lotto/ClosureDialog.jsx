@@ -57,7 +57,7 @@ export const ClosureDialog = ({ open, onOpenChange, stats, loading, onGenerate }
               </button>
             ))}
             <p data-testid="closure-estimate" className="text-sm text-slate-300 pt-2">
-              {count ? <>Serão gerados <span className="font-mono text-emerald-400">{count}</span> jogos.</> : "—"}
+              {count ? <>{count === 1 ? "Será gerado" : "Serão gerados"} <span className="font-mono text-emerald-400">{count}</span> {count === 1 ? "jogo" : "jogos"}.</> : "—"}
             </p>
           </div>
         </div>

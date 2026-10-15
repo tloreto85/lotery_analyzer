@@ -41,7 +41,7 @@ const BatchItem = ({ batch, i, onDeleted }) => {
       <button data-testid={`batch-toggle-${i}`} onClick={() => setOpen(!open)} className="w-full flex flex-wrap items-center gap-x-6 gap-y-2 p-4 text-left">
         <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
         <span className="font-display text-white">{data.games.length} {data.games.length === 1 ? "jogo" : "jogos"}</span>
-        <span className="text-xs text-slate-400">{fmtDate(data.created_at)} · base: últimos {data.based_on} (até #{data.last_concurso})</span>
+        <span className="text-xs text-slate-400">{fmtDate(data.created_at)} · {data.options?.closure ? `Fechamento ${data.options.closure.numbers.length} dezenas (até #${data.last_concurso})` : `base: últimos ${data.based_on} (até #${data.last_concurso})`}</span>
         <span data-testid={`batch-status-${i}`} className={`ml-auto text-xs font-semibold ${check ? "text-amber-300" : "text-slate-500"}`}>
           {check ? `Conferido #${check.concurso} · melhor: ${check.best} acertos` : `Aguardando concurso #${data.last_concurso + 1}`}
         </span>

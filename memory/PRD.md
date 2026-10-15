@@ -21,6 +21,7 @@ Programa no browser que lê TXT de jogos da Lotofácil e exibe: dezenas 1–5 ma
 - Histórico de jogos (lotes salvos no MongoDB, exportar TXT/XLS, excluir) e Conferir jogos (auto contra concurso seguinte ou qualquer concurso salvo; acertos 11–15) – iteration_2 100%
 - Aba Atraso: atraso atual/máximo/médio e último concurso por dezena, top 5 em destaque, incluído nos exports
 - Gerador: dezenas fixas/excluídas (picker 5x5) e opção de incluir exatamente 1 ou 2 das 5 mais atrasadas por jogo; opções salvas no lote – iteration_3 100%
+- Fechamento: 16–20 dezenas, completo (até 18) ou reduzido com garantia 14/13 (cobertura gulosa, verificada por força bruta); salvo no histórico – iteration_4 100%
 
 ## Backlog
 - P1: conferir jogos gerados contra resultado novo; histórico de jogos gerados
