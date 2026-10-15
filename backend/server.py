@@ -298,8 +298,8 @@ async def get_batch(batch_id: str, concurso: Optional[int] = None):
     if not doc:
         raise HTTPException(404, "Lote de jogos não encontrado.")
     b = GameBatch.from_mongo(doc)
-    contest = await find_contest(concurso if concurso else b.last_concurso + 1)
-    if concurso and not contest:
+    contest = await find_contest(concurso if concurso is not None else b.last_concurso + 1)
+    if concurso is not None and not contest:
         raise HTTPException(404, f"Concurso {concurso} não está salvo.")
     return check_batch(b, contest)
 

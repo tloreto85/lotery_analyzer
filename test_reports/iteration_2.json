@@ -1,0 +1,32 @@
+{
+  "summary": "Tested Game History + Conferir features (backend + UI) and regression. Backend: 32/32 pytest pass (21 regression + 11 new batch tests): POST /generate saves batch (24-char id, window, based_on, last_concurso, games, created_at, check=null); GET /batches newest-first, no _id; check=null until #301 exists; after uploading novo_concurso_301.txt check has concurso 301, numbers 1..15, hits == intersection counts, best == max, summary 11..15 correct; GET /batches/{id}?concurso=300 checks against #300 correctly; ?concurso=9999 -> 404 with message; GET/DELETE invalid id ('abc') and unknown ObjectId -> 404; DELETE removes and GET returns 404. UI (desktop 1920): generated 6 games -> new batch-item-0 'Aguardando concurso #301'; uploaded 301 -> 'Conferido #301 · melhor: 10 acertos'; batch-summary-0 and batch-0-game-hits-{j} match expected (count of numbers <=15) for all 6 games; gold balls exactly equal to matched numbers; recheck with 300 -> 'Conferido #300'; recheck 9999 -> toast 'Concurso 9999 não está salvo.'; TXT export lines only comma-separated numbers; XLS .xlsx downloads; history persists after reload; delete via confirm removes item (5 -> 4). Mobile 390: 5 tabs, window selector, 'Limpar concursos (300)', history expand - no horizontal overflow. DB restored to 300 contests (#1-#300); 4 batches remain.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/batches/{id}?concurso=0", "issue": "concurso=0 is falsy so it silently falls back to default (last_concurso+1) instead of 404 - edge case"},
+      {"endpoint": "/api/batches", "issue": "Batches are bound to concurso numbers only; if contests are cleared and a different file re-uploaded, old batches will be checked against unrelated data. Also list limited to 200 with N+1 find_contest queries (fine at current scale)"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Games history / toasts", "issues": ["Plural grammar: '1 jogos' in batch header and toast '1 novos concursos salvos.' should be singular", "After uploading the next contest, the top 'Jogos gerados' section still shows the games without hits (only the history item shows Conferido) - optional UX improvement"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_batches_api.py", "/app/backend/tests/test_lotofacil_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "(Minor) Singular/plural for '1 jogo' in batch header and '1 novo concurso salvo' toast",
+    "(Optional) Treat concurso=0 explicitly (use `is not None`) in GET /api/batches/{id}"
+  ],
+  "critical_code_review_comments": [
+    "check_batch uses max(hits) - would raise on a batch with empty games (not reachable now since quantity>=1)",
+    "list_batches does one find_contest per batch (N+1); could fetch needed contests with a single $in query"
+  ],
+  "updated_files": ["/app/backend/tests/test_batches_api.py", "/app/backend/tests/test_lotofacil_api.py (updated repeats_parity label assertion for singular/plural fix)"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "DB restored to 300 contests from lotofacil_exemplo.txt; 4 batches remain (1 pre-existing + 3 from regression generate tests), all 'Aguardando concurso #301'.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: REACT_APP_BACKEND_URL=... pytest /app/backend/tests/test_lotofacil_api.py /app/backend/tests/test_batches_api.py -n 0. test_batches_api teardown deletes its batches and restores 300 contests. UI: need page.on('dialog') accept for window.confirm; upload of 301 opens generator ask modal (click generator-ask-no)."
+}

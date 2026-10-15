@@ -92,8 +92,9 @@ class TestSmallDataset:
         exp_rep = Counter(len(set(a) & set(b)) for a, b in zip(draws, draws[1:]))
         assert rep == dict(exp_rep)
         # repeats parity label
+        pl = lambda n, a, b: f"{n} {a if n == 1 else b}"
         for r in st["repeats_parity"]:
-            assert r["label"] == f"{r['repeated']} repetidos - {r['even']} pares x {r['odd']} ímpares"
+            assert r["label"] == f"{pl(r['repeated'], 'repetido', 'repetidos')} - {pl(r['even'], 'par', 'pares')} x {pl(r['odd'], 'ímpar', 'ímpares')}"
         # top trio count
         trios = Counter(c for d in draws for c in combinations(d, 3))
         assert st["top_trios"][0]["count"] == trios.most_common(1)[0][1]

@@ -42,7 +42,7 @@ export default function App() {
     setUploading(true);
     try {
       const r = await uploadContests(await file.text());
-      toast.success(`${r.inserted} novos concursos salvos${r.skipped ? `, ${r.skipped} já existiam` : ""}${r.invalid ? `, ${r.invalid} linhas inválidas` : ""}.`);
+      toast.success(`${r.inserted} ${r.inserted === 1 ? "novo concurso salvo" : "novos concursos salvos"}${r.skipped ? `, ${r.skipped} já existiam` : ""}${r.invalid ? `, ${r.invalid} linhas inválidas` : ""}.`);
       await load(win);
       setDialog({ open: true, ask: true });
     } catch (e) { toast.error(errMsg(e)); }

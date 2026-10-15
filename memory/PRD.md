@@ -18,6 +18,7 @@ Programa no browser que lê TXT de jogos da Lotofácil e exibe: dezenas 1–5 ma
 - Generator: frequency-weighted random with filters (sum mean±std, common parity, first-line qty, repeats vs last draw)
 - Exports: stats TXT/XLSX, games TXT (n,n,n...) / XLSX
 - Tested: 100% backend + frontend (iteration_1)
+- Histórico de jogos (lotes salvos no MongoDB, exportar TXT/XLS, excluir) e Conferir jogos (auto contra concurso seguinte ou qualquer concurso salvo; acertos 11–15) – iteration_2 100%
 
 ## Backlog
 - P1: conferir jogos gerados contra resultado novo; histórico de jogos gerados
